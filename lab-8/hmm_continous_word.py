@@ -2,25 +2,34 @@ import numpy as np
 from hmmlearn import hmm
 import scipy.io.wavfile as wav
 import speech_recognition as sr
+
+# create a speech recognizer object
 r = sr.Recognizer()
 
 # load the speech signal
-sample_rate, signal = wav.read('speech.wav')
+with sr.AudioFile('speech.wav') as source:
+    audio = r.record(source)
 
 # extract the Mel-Frequency Cepstral Coefficients (MFCCs)
 from python_speech_features import mfcc
+signal, sample_rate = wav.read(sr.AudioData(audio.get_buffer(), sample_rate=source.SAMPLE_RATE))
 mfcc_features = mfcc(signal, sample_rate)
-
-# define the HMM model
-num_states = 5
-num_features = mfcc_features.shape[1]
-model = hmm.GaussianHMM(n_components=num_states, covariance_type="diag")
-
-# train the HMM model
-model.fit(mfcc_features)
 
 # define the set of words to recognize
 words = ['hello', 'world', 'python']
+
+# train an HMM model for each word
+models = {}
+for word in words:
+    # extract the training data for this word
+    word_features = [mfcc_features[i] for i in range(len(mfcc_features)) if i % len(words) == words.index(word)]
+    # define the HMM model
+    num_states = 5
+    num_features = mfcc_features.shape[1]
+    model = hmm.GaussianHMM(n_components=num_states, covariance_type="diag")
+    model.fit(word_features)
+    # store the model for this word in the dictionary
+    models[word] = model
 
 # perform continuous speech recognition
 with sr.Microphone() as source:
@@ -32,7 +41,7 @@ with sr.Microphone() as source:
         audio = r.listen(source)
         try:
             # extract the MFCC features from the audio signal
-            signal = audio.get_array_of_samples()
+            signal, sample_rate = wav.read(sr.AudioData(audio.get_buffer(), sample_rate=source.SAMPLE_RATE))
             mfcc_features = mfcc(signal, sample_rate)
             # recognize the word using the HMM model
             log_probabilities = []
