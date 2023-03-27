@@ -1,6 +1,8 @@
 import numpy as np
 from hmmlearn import hmm
 import scipy.io.wavfile as wav
+import speech_recognition as sr
+r = sr.Recognizer()
 
 # load the speech signal
 sample_rate, signal = wav.read('speech.wav')
