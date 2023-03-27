@@ -7,12 +7,12 @@ import speech_recognition as sr
 r = sr.Recognizer()
 
 # load the speech signal
-with sr.AudioFile('speech.wav') as source:
+with sr.AudioFile('lab8/speech.wav') as source:
     audio = r.record(source)
 
 # extract the Mel-Frequency Cepstral Coefficients (MFCCs)
 from python_speech_features import mfcc
-signal, sample_rate = wav.read(sr.AudioData(audio.get_buffer(), sample_rate=source.SAMPLE_RATE))
+signal, sample_rate = wav.read("speech.wav")
 mfcc_features = mfcc(signal, sample_rate)
 
 # define the set of words to recognize
@@ -41,7 +41,7 @@ with sr.Microphone() as source:
         audio = r.listen(source)
         try:
             # extract the MFCC features from the audio signal
-            signal, sample_rate = wav.read(sr.AudioData(audio.get_buffer(), sample_rate=source.SAMPLE_RATE))
+            signal = np.frombuffer(audio.frame_data, dtype=np.int16)
             mfcc_features = mfcc(signal, sample_rate)
             # recognize the word using the HMM model
             log_probabilities = []
